@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,182 +21,196 @@ import {
   LogOut,
   Package,
   UserCircle,
+  Heart,
+  LayoutDashboard,
 } from "lucide-react";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
 
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createSupabaseBrowserClient();
 
-  /* Scroll effect */
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+  // --- IMMEDIATE REACTIVITY SYNC ---
+  const syncCounts = useCallback(() => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+    setCartCount(
+      cart.reduce((acc: number, item: any) => acc + item.quantity, 0)
+    );
+    setWishlistCount(wishlist.length);
   }, []);
 
-  /* Auth state */
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    syncCounts();
+    window.addEventListener("storage", syncCounts);
+    window.addEventListener("cartUpdated", syncCounts); // Custom event listener
+    return () => {
+      window.removeEventListener("storage", syncCounts);
+      window.removeEventListener("cartUpdated", syncCounts);
+    };
+  }, [syncCounts]);
+
+  // --- AUTH PROTECTION ---
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
+      if (!data.session?.user && isProtectedRoute(pathname))
+        router.push("/signin");
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (!session?.user && isProtectedRoute(pathname)) router.push("/signin");
     });
-
     return () => subscription.unsubscribe();
+  }, [supabase, pathname, router]);
+
+  const isProtectedRoute = (path: string) =>
+    ["/dashboard", "/profile", "/orders", "/wishlist", "/cart"].some((route) =>
+      path.startsWith(route)
+    );
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/signin");
-  };
-
-  const avatarLetter = user?.email?.charAt(0).toUpperCase();
-
   return (
-    <motion.nav
-      initial={{ y: -30, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className={`fixed top-0 left-0 w-full z-50 ${
-        scrolled ? "bg-[#0b1220]/90 backdrop-blur-md shadow-lg" : "bg-[#0b1220]"
+    <nav
+      className={`fixed top-0 left-0 z-[60] w-full transition-all duration-500 ${
+        scrolled
+          ? "bg-black/60 backdrop-blur-xl border-b border-white/10 py-3"
+          : "bg-transparent py-6"
       }`}
     >
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* LEFT */}
-        <div className="flex items-center gap-3">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="text-white hover:bg-white/10"
-          >
-            <Menu />
-          </Button>
-          <Link
-            href="/"
-            className="text-white font-semibold hover:opacity-80 transition-opacity"
-          >
-            ShopEC
-          </Link>
-        </div>
+      <div className="container mx-auto flex items-center justify-between px-6">
+        {/* Logo */}
+        <Link href="/" className="group flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:rotate-12 transition-transform">
+            <Zap className="text-white fill-white" size={20} />
+          </div>
+          <span className="text-2xl font-black tracking-tighter text-white">
+            SHOPEC
+          </span>
+        </Link>
 
-        {/* SEARCH */}
-        <div className="hidden md:flex flex-1 max-w-xl relative mx-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        {/* Search */}
+        <div className="hidden md:flex flex-1 max-w-md relative mx-12">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
           <Input
-            placeholder="Search products"
-            className="pl-11 rounded-full bg-white text-black"
+            placeholder="Search catalog..."
+            className="h-11 rounded-2xl border-none bg-white/5 pl-12 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-purple-500/50"
           />
         </div>
 
-        {/* RIGHT */}
-        <div className="flex items-center gap-4">
-          <div className="hidden lg:flex items-center gap-2 text-sm text-white">
-            <Zap className="h-4 w-4 text-yellow-400" />
-            Order in 15 min
-          </div>
-
-          {/* CART */}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="relative text-white hover:bg-white/10"
-          >
-            <ShoppingCart />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center">
-              0
-            </span>
-          </Button>
-
-          {/* USER MENU */}
+        {/* Controls */}
+        <div className="flex items-center gap-2">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="h-9 w-9 rounded-full bg-indigo-600 text-white font-semibold flex items-center justify-center hover:opacity-90 transition cursor-pointer">
-                  {avatarLetter}
-                </button>
-              </DropdownMenuTrigger>
+            <>
+              <Button
+                onClick={() => router.push("/wishlist")}
+                variant="ghost"
+                size="icon"
+                className="relative text-white hover:bg-white/10 rounded-xl"
+              >
+                <Heart
+                  size={22}
+                  className={
+                    wishlistCount > 0 ? "fill-rose-500 text-rose-500" : ""
+                  }
+                />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold ring-2 ring-black">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Button>
 
-              <AnimatePresence>
-                <DropdownMenuContent align="end" sideOffset={8} asChild>
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                    transition={{ duration: 0.18, ease: "easeOut" }}
-                    className="w-64 mt-5 rounded-lg shadow-xl bg-white border border-slate-200 p-3"
-                  >
-                    {/* HEADER */}
-                    <div className="px-3 py-2">
-                      <p className="text-sm font-semibold leading-none">
-                        Account
-                      </p>
-                      <p className="text-xs text-slate-500 truncate mt-1">
-                        {user.email}
-                      </p>
+              <Button
+                onClick={() => router.push("/cart")}
+                variant="ghost"
+                size="icon"
+                className="relative text-white hover:bg-white/10 rounded-xl"
+              >
+                <ShoppingCart size={22} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500 text-[10px] font-bold ring-2 ring-black text-black">
+                    {cartCount}
+                  </span>
+                )}
+              </Button>
+
+              <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block" />
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="h-10 w-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 p-[2px] hover:scale-105 transition-transform">
+                    <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-[#050505] font-black text-white text-xs">
+                      {user.email?.charAt(0).toUpperCase()}
                     </div>
-
-                    
-
-                    {/* ITEMS */}
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href="/orders"
-                        className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 transition w-ful cursor-pointer"
-                      >
-                        <Package className="h-4 w-4 shrink-0" />
-                        <span className="text-sm">My Orders</span>
-                      </Link>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href="/profile"
-                        className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 transition w-full cursor-pointer"
-                      >
-                        <UserCircle className="h-4 w-4 shrink-0" />
-                        <span className="text-sm">Profile</span>
-                      </Link>
-                    </DropdownMenuItem>
-
-                    
-
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      className="flex items-center gap-3 px-3 py-2 rounded-md text-red-600 hover:bg-red-50 transition w-full cursor-pointer"
-                    >
-                      <LogOut className="h-4 w-4 shrink-0" />
-                      <span className="text-sm">Logout</span>
-                    </DropdownMenuItem>
-                  </motion.div>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-64 border-white/10 bg-[#0f172a] p-2 text-white backdrop-blur-xl rounded-2xl"
+                >
+                  <div className="px-3 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-400 mb-1">
+                      Authenticated
+                    </p>
+                    <p className="truncate text-sm font-medium text-white/70">
+                      {user.email}
+                    </p>
+                  </div>
+                  <DropdownMenuSeparator className="bg-white/5" />
+                  <DropdownMenuItem
+                    onClick={() => router.push("/dashboard")}
+                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer"
+                  >
+                    <LayoutDashboard size={18} /> Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push("/orders")}
+                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer"
+                  >
+                    <Package size={18} /> Orders
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push("/profile")}
+                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer"
+                  >
+                    <UserCircle size={18} /> Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/5" />
+                  <DropdownMenuItem
+                    onClick={() => supabase.auth.signOut()}
+                    className="flex items-center gap-3 rounded-xl py-2 text-rose-400 focus:bg-rose-500/10 cursor-pointer"
+                  >
+                    <LogOut size={18} /> Logout
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
-              </AnimatePresence>
-            </DropdownMenu>
+              </DropdownMenu>
+            </>
           ) : (
             <Button
               asChild
-              size="icon"
-              variant="ghost"
-              className="text-white hover:bg-white/10"
+              className="rounded-xl bg-white text-black hover:bg-purple-500 hover:text-white font-black transition-all"
             >
-              <Link href="/signin">
-                <LogIn />
-              </Link>
+              <Link href="/signin">SIGN IN</Link>
             </Button>
           )}
         </div>
       </div>
-    </motion.nav>
+    </nav>
   );
 }

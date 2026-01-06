@@ -1,169 +1,206 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ShoppingBag, ArrowRight, Play, Sparkles, Zap } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#05060a] via-[#090b18] to-black text-white">
-      {/* Animated background accents */}
-      <motion.div
-        animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute -top-40 right-0 h-[420px] w-[420px] rounded-full bg-purple-500/20 blur-[120px]"
-      />
-      <motion.div
-        animate={{ x: [0, -30, 0], y: [0, 40, 0] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute -bottom-40 left-0 h-[420px] w-[420px] rounded-full bg-cyan-500/20 blur-[120px]"
-      />
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-[#05060a] text-white">
+      {/* 1. LAYERED BACKGROUND ANIMATIONS */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Neon Orbs */}
+        <div className="absolute top-[-10%] left-[-5%] h-[500px] w-[500px] rounded-full bg-purple-600/20 blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[0%] right-[-5%] h-[500px] w-[500px] rounded-full bg-cyan-600/15 blur-[120px]" />
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-24 px-6 py-32 md:grid-cols-2">
-        {/* LEFT */}
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="space-y-10"
-        >
-          <span className="inline-flex w-fit items-center rounded-full border border-purple-400/30 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-cyan-500/20 px-4 py-1 text-xs tracking-wide text-white font-medium backdrop-blur-md shadow-xl shadow-purple-500/25 ring-2 ring-purple-400/30 ring-offset-0">
-            PREMIUM FASHION BRAND
-          </span>
+        {/* Grid Overlay */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
+            backgroundSize: "40px 40px",
+          }}
+        />
+      </div>
 
-          <div className="space-y-6">
-            <h1 className="text-4xl font-semibold leading-tight md:text-6xl">
-              Crafted for
-              <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-                modern lifestyles
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-16 px-6 py-24 lg:grid-cols-2">
+        {/* LEFT CONTENT */}
+        <div className="z-10 space-y-8 animate-fade-in">
+          <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">
+            <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400">
+              New Era of Streetwear
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            <h1 className="text-5xl font-black leading-[0.9] tracking-tighter md:text-8xl">
+              DEFINE YOUR <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-cyan-400">
+                AESTHETIC.
               </span>
             </h1>
 
-            <p className="max-w-xl text-base leading-relaxed text-white/65">
-              Elevated essentials designed with precision, comfort, and timeless
-              aesthetics — refined fashion for everyday confidence.
+            <p className="max-w-lg text-lg leading-relaxed text-white/40 font-medium">
+              Experience high-fidelity fashion. Engineered for comfort, designed
+              for the digital generation. Premium materials meet futuristic
+              silhouettes.
             </p>
           </div>
 
-          {/* STATS */}
-          <div className="flex gap-14 border-t border-white/10 pt-6 text-sm">
+          {/* CTA GROUP */}
+          <div className="flex flex-wrap items-center gap-6 pt-4">
+            <Button
+              asChild
+              size="lg"
+              className="h-14 rounded-2xl bg-white px-8 text-black hover:bg-purple-500 hover:text-white transition-all duration-300 font-black group shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+            >
+              <Link href="/products" className="flex items-center gap-2">
+                SHOP DROPS{" "}
+                <ShoppingBag
+                  size={18}
+                  className="group-hover:rotate-12 transition-transform"
+                />
+              </Link>
+            </Button>
+
+            <button className="group flex items-center gap-3 text-sm font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 group-hover:border-cyan-400/50 transition-colors">
+                <Play
+                  size={16}
+                  className="fill-white group-hover:fill-cyan-400 transition-colors"
+                />
+              </div>
+              Watch Film
+            </button>
+          </div>
+
+          {/* TRUST STATS (PILL STYLE) */}
+          <div className="flex flex-wrap gap-4 pt-8">
             {[
-              { value: "12k+", label: "Products sold" },
-              { value: "4.9 / 5", label: "Customer trust" },
-              { value: "60k+", label: "Global clients" },
+              { label: "Products", value: "12k+", color: "text-purple-400" },
+              { label: "Trust Rate", value: "4.9/5", color: "text-pink-400" },
+              { label: "Global Fans", value: "60k+", color: "text-cyan-400" },
             ].map((stat) => (
-              <motion.div
+              <div
                 key={stat.label}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                className="rounded-2xl border border-white/5 bg-white/[0.03] px-5 py-3 backdrop-blur-sm"
               >
-                <p className="text-xl font-medium">{stat.value}</p>
-                <p className="text-white/50">{stat.label}</p>
-              </motion.div>
+                <p className={`text-xl font-black ${stat.color}`}>
+                  {stat.value}
+                </p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-white/30">
+                  {stat.label}
+                </p>
+              </div>
             ))}
           </div>
+        </div>
 
-          {/* CTA */}
-          <div className="flex items-center gap-6 pt-2">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 px-10 text-white font-semibold shadow-xl shadow-purple-500/30 hover:shadow-purple-500/50 hover:shadow-2xl ring-2 ring-purple-400/30 ring-offset-0 hover:ring-purple-400/50 transition-all duration-300 relative overflow-hidden group"
-              >
-                <span className="relative z-10">Shop Collection</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </Button>
-            </motion.div>
-
-            <motion.button
-              whileHover={{ x: 5 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="text-sm font-medium text-white/60 hover:text-transparent hover:bg-gradient-to-r hover:from-purple-400 hover:via-pink-400 hover:to-cyan-400 hover:bg-clip-text transition-all duration-300 relative group"
-            >
-              <span className="flex items-center gap-2">
-                View Lookbook
-                <motion.span
-                  animate={{ x: [0, 3, 0] }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="inline-block"
-                >
-                  →
-                </motion.span>
+        {/* RIGHT VISUALS (FLOATING BENTO CARD) */}
+        <div className="relative perspective-1000 hidden lg:block">
+          <div className="relative z-10 rounded-[3rem] border border-white/10 bg-gradient-to-b from-white/10 to-transparent p-8 backdrop-blur-2xl shadow-2xl animate-float transition-transform hover:rotate-2 duration-700">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2">
+                <Zap size={18} className="text-purple-400 fill-purple-400" />
+                <span className="text-xs font-black tracking-widest uppercase">
+                  Hot Drop
+                </span>
+              </div>
+              <span className="text-xs font-bold text-white/30">
+                ID: #0029-X
               </span>
-              <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-400 to-cyan-400 group-hover:w-full transition-all duration-300"></div>
-            </motion.button>
-          </div>
-        </motion.div>
+            </div>
 
-        {/* RIGHT */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.15 }}
-          className="relative"
-        >
-          <motion.div
-            whileHover={{ y: -6 }}
-            transition={{ duration: 0.3 }}
-            className="rounded-3xl border border-white/15 bg-white/[0.04] p-6 backdrop-blur-xl"
-          >
-            <h3 className="mb-6 text-sm font-medium tracking-wide text-white/70">
-              NEW ARRIVALS
-            </h3>
+            <div className="grid grid-cols-5 gap-4">
+              {/* Large Feature Image */}
+              <div className="col-span-3 relative aspect-[4/5] overflow-hidden rounded-3xl bg-black/40 group">
+                <Image
+                  src="/clothes-1.png"
+                  alt="Hero model"
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
+                  <p className="text-xs font-bold text-cyan-400 tracking-widest uppercase">
+                    Stealth Series
+                  </p>
+                  <h4 className="font-black text-xl leading-tight">
+                    WINTER CYBER JACKET
+                  </h4>
+                </div>
+              </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              {[
-                {
-                  src: "/clothes-1.png",
-                  title: "Winter Jacket",
-                  price: "₹3,499",
-                },
-                {
-                  src: "/huddie.png",
-                  title: "Classic Hoodie",
-                  price: "₹2,199",
-                },
-              ].map((item, i) => (
-                <motion.div
-                  key={item.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + i * 0.1 }}
-                  whileHover={{ scale: 1.03 }}
-                  className="rounded-2xl bg-black/40 p-4"
-                >
-                  <div className="relative h-40 overflow-hidden rounded-xl">
-                    <Image
-                      src={item.src}
-                      alt={item.title}
-                      fill
-                      className="object-cover"
-                    />
+              {/* Side Stack */}
+              <div className="col-span-2 space-y-4">
+                <div className="relative aspect-square overflow-hidden rounded-3xl bg-white/5 border border-white/5">
+                  <Image
+                    src="/huddie.png"
+                    alt="Hoodie"
+                    fill
+                    className="object-cover opacity-60 hover:opacity-100 transition-opacity"
+                  />
+                </div>
+                <div className="relative aspect-square overflow-hidden rounded-3xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center group">
+                  <div className="text-center group-hover:scale-110 transition-transform">
+                    <p className="text-2xl font-black">15%</p>
+                    <p className="text-[10px] font-bold uppercase text-white/40">
+                      Launch Disc.
+                    </p>
                   </div>
-                  <p className="mt-3 text-sm font-medium">{item.title}</p>
-                  <p className="text-xs text-white/50">From {item.price}</p>
-                </motion.div>
-              ))}
+                </div>
+              </div>
             </div>
 
             <Button
-              variant="outline"
-              className="mt-6 w-full border-white/20 text-white hover:bg-white/5"
+              variant="ghost"
+              className="mt-8 w-full h-14 rounded-2xl border border-white/10 text-white hover:bg-white hover:text-black transition-all font-black group"
             >
-              Browse All Products
+              VIEW FULL LOOKBOOK{" "}
+              <ArrowRight
+                size={18}
+                className="ml-2 group-hover:translate-x-2 transition-transform"
+              />
             </Button>
-          </motion.div>
-        </motion.div>
+          </div>
+
+          {/* Background Decoration for Right Side */}
+          <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[110%] w-[110%] rounded-[4rem] border border-purple-500/20 rotate-6" />
+          <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[110%] w-[110%] rounded-[4rem] border border-cyan-500/10 -rotate-3" />
+        </div>
       </div>
+
+      <style jsx global>{`
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0px) rotate(2deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(1deg);
+          }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+            filter: blur(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+      `}</style>
     </section>
   );
 }

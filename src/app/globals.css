@@ -1,11 +1,21 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
+/* Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
     transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
   }
   to {
     opacity: 1;
@@ -25,6 +35,10 @@
 
 .animate-fade-in-up {
   animation: fadeInUp 0.8s ease forwards;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.6s ease forwards;
 }
 
 .animate-float {
@@ -60,51 +74,70 @@
 }
 
 .animate-float-fast {
-  animation: floatFast 4s ease-in-out infinite;
+  animation: floatFast 3s ease-in-out infinite;
 }
 
-body {
-  font-family: var(--font-inter), system-ui, sans-serif;
+/* Product page animations */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-:root {
-  --sidebar: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.dark {
-  --sidebar: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+/* Stagger effect for grid items */
+.grid > div:nth-child(1) {
+  animation-delay: 0s;
 }
-
-@theme inline {
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+.grid > div:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.grid > div:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.grid > div:nth-child(4) {
+  animation-delay: 0.15s;
+}
+.grid > div:nth-child(5) {
+  animation-delay: 0.2s;
+}
+.grid > div:nth-child(6) {
+  animation-delay: 0.25s;
+}
+.grid > div:nth-child(7) {
+  animation-delay: 0.3s;
+}
+.grid > div:nth-child(8) {
+  animation-delay: 0.35s;
+}
+.grid > div:nth-child(9) {
+  animation-delay: 0.4s;
+}
+.grid > div:nth-child(10) {
+  animation-delay: 0.45s;
+}
+.grid > div:nth-child(11) {
+  animation-delay: 0.5s;
+}
+.grid > div:nth-child(12) {
+  animation-delay: 0.55s;
 }
 
 @layer base {
   * {
     @apply border-gray-200 outline-gray-200/50;
   }
+
   body {
     @apply bg-white text-gray-900;
+    font-family: var(--font-inter), system-ui, sans-serif;
   }
 }
