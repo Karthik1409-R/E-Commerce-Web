@@ -5,6 +5,8 @@ import Navbar from "../components/Navbar";
 import HeroSection from "../components/dashboard/Hero";
 import ProductCategoriesPage from "../categories/page";
 import ProductsPage from "../products/page";
+import Testimonials from "../components/Testimonials";
+import Footer from "../components/Footer";
 
 export default function DashboardPage() {
   const params = useSearchParams();
@@ -15,7 +17,9 @@ export default function DashboardPage() {
       <Navbar />
       <HeroSection />
       <ProductCategoriesPage />
-      <ProductsPage/>
+      <ProductsPage />
+      <Testimonials />
+      <Footer />
     </>
   );
 }

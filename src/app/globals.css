@@ -141,3 +141,31 @@
     font-family: var(--font-inter), system-ui, sans-serif;
   }
 }
+
+@layer base {
+  :root {
+    /* 2026 Recommended Dark Surface */
+    --background: 240 10% 3.9%; /* Equivalent to #0D0D0D */
+  }
+}
+
+.nexus-bg {
+  background-color: #121212; /* Material Design standard for dark themes */
+  background-image: 
+    /* Hyper-Violet glow */
+    radial-gradient(at 0% 0%, hsla(270, 70%, 15%, 1) 0px, transparent 50%),
+    /* Cyan Blue glow */
+    radial-gradient(at 100% 100%, hsla(190, 80%, 10%, 1) 0px, transparent 50%),
+    /* Deep Navy depth */
+    radial-gradient(at 50% 50%, hsla(230, 40%, 8%, 1) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Glassmorphism utility with 2026 "Tinted Frosting" */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}

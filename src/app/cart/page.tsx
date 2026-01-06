@@ -181,10 +181,12 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  <Button className="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-600 text-lg font-black hover:scale-[1.02] transition-transform group shadow-xl shadow-purple-600/20">
-                    PROCEED TO CHECKOUT
-                    <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                  <Link href="/checkout">
+                    <Button className="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-600 text-lg font-black hover:scale-[1.02] transition-transform group shadow-xl shadow-purple-600/20">
+                      PROCEED TO CHECKOUT
+                      <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
 
                   <div className="mt-6 flex items-center justify-center gap-2 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">
                     <Zap size={12} className="fill-white/20" />

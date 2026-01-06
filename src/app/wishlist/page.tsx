@@ -33,7 +33,7 @@ export default function WishlistPage() {
   }, []);
 
   useEffect(() => {
-    setMounted(true);
+    setMounted(true); 
     loadWishlist();
     // Listen for changes from other tabs/components
     window.addEventListener("storage", loadWishlist);

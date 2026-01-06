@@ -13,11 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Menu,
   Search,
   ShoppingCart,
   Zap,
-  LogIn,
   LogOut,
   Package,
   UserCircle,
@@ -37,7 +35,6 @@ export default function Navbar() {
   const pathname = usePathname();
   const supabase = createSupabaseBrowserClient();
 
-  // --- IMMEDIATE REACTIVITY SYNC ---
   const syncCounts = useCallback(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
@@ -50,14 +47,13 @@ export default function Navbar() {
   useEffect(() => {
     syncCounts();
     window.addEventListener("storage", syncCounts);
-    window.addEventListener("cartUpdated", syncCounts); // Custom event listener
+    window.addEventListener("cartUpdated", syncCounts);
     return () => {
       window.removeEventListener("storage", syncCounts);
       window.removeEventListener("cartUpdated", syncCounts);
     };
   }, [syncCounts]);
 
-  // --- AUTH PROTECTION ---
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
@@ -152,17 +148,21 @@ export default function Navbar() {
 
               <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block" />
 
-              <DropdownMenu>
+              {/* FIX: Set modal={false} so the dropdown moves with the scrolled page */}
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <button className="h-10 w-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 p-[2px] hover:scale-105 transition-transform">
+                  <button className="h-10 w-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 p-[2px] hover:scale-105 transition-transform outline-none">
                     <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-[#050505] font-black text-white text-xs">
                       {user.email?.charAt(0).toUpperCase()}
                     </div>
                   </button>
                 </DropdownMenuTrigger>
+
+                {/* FIX: Add sideOffset and ensure align is set to 'end' */}
                 <DropdownMenuContent
                   align="end"
-                  className="w-64 border-white/10 bg-[#0f172a] p-2 text-white backdrop-blur-xl rounded-2xl"
+                  sideOffset={12}
+                  className="w-64 border-white/10 bg-[#0f172a] p-2 text-white backdrop-blur-xl rounded-2xl z-[70] shadow-2xl"
                 >
                   <div className="px-3 py-3">
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-400 mb-1">

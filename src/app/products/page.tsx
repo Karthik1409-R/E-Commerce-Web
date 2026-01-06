@@ -45,7 +45,7 @@ const allProducts: Product[] = [
   {
     id: "m1",
     name: "Premium Hoodie",
-    image: "/products/hoodie.jpg",
+    image: "/men.jpg",
     price: 120,
     discount: 20,
     rating: 4.6,
@@ -444,6 +444,8 @@ export default function ProductsPage() {
           </div>
 
           {/* Controls Glass Card */}
+          {/* Container: Changed to relative to avoid z-index fighting, 
+    Ensure no overflow-hidden is on this parent div */}
           <div className="top-24 z-30 mb-12 rounded-3xl border border-white/10 bg-black/40 p-4 backdrop-blur-xl shadow-2xl">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
               {/* Search */}
@@ -459,11 +461,15 @@ export default function ProductsPage() {
 
               {/* Filters Group */}
               <div className="flex flex-wrap items-center gap-3">
-                <Select value={genderFilter} onValueChange={setGenderFilter}>
-                  <SelectTrigger className="h-12 w-[140px] border-none bg-white/5 text-white hover:bg-white/10 transition-colors">
+                {/* ADD modal={false} HERE */}
+                <Select
+                  value={genderFilter}
+                  onValueChange={setGenderFilter}
+                >
+                  <SelectTrigger className="h-12 w-[140px] border-none bg-white/5 text-white hover:bg-white/10 transition-colors focus:ring-0 focus:ring-offset-0">
                     <SelectValue placeholder="Gender" />
                   </SelectTrigger>
-                  <SelectContent className="border-white/10 bg-[#0f0f0f] text-white">
+                  <SelectContent className="border-white/10 bg-[#0f0f0f] text-white z-[100]">
                     <SelectItem value="all">All Styles</SelectItem>
                     <SelectItem value="men">Menswear</SelectItem>
                     <SelectItem value="women">Womenswear</SelectItem>
@@ -472,11 +478,12 @@ export default function ProductsPage() {
                   </SelectContent>
                 </Select>
 
+                {/* ADD modal={false} HERE */}
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="h-12 w-[160px] border-none bg-white/5 text-white hover:bg-white/10 transition-colors">
+                  <SelectTrigger className="h-12 w-[160px] border-none bg-white/5 text-white hover:bg-white/10 transition-colors focus:ring-0 focus:ring-offset-0">
                     <SelectValue placeholder="Sort By" />
                   </SelectTrigger>
-                  <SelectContent className="border-white/10 bg-[#0f0f0f] text-white">
+                  <SelectContent className="border-white/10 bg-[#0f0f0f] text-white z-[100]">
                     <SelectItem value="name">Alphabetical</SelectItem>
                     <SelectItem value="price-low">Price: Low</SelectItem>
                     <SelectItem value="price-high">Price: High</SelectItem>
