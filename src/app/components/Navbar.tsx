@@ -35,45 +35,49 @@ export default function Navbar() {
   const pathname = usePathname();
   const supabase = createSupabaseBrowserClient();
 
+  // --- PERSISTENT INVENTORY SYNC ---
   const syncCounts = useCallback(() => {
+    if (typeof window === "undefined") return;
+
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
-    setCartCount(
-      cart.reduce((acc: number, item: any) => acc + item.quantity, 0)
+
+    // Calculate total item quantity (not just array length)
+    const totalCartItems = cart.reduce(
+      (acc: number, item: any) => acc + (item.quantity || 1),
+      0
     );
+
+    setCartCount(totalCartItems);
     setWishlistCount(wishlist.length);
   }, []);
 
   useEffect(() => {
-    syncCounts();
+    syncCounts(); // Initial load sync
+
+    // Listen for storage changes from the useLocalStorage hook or other tabs
     window.addEventListener("storage", syncCounts);
     window.addEventListener("cartUpdated", syncCounts);
+
     return () => {
       window.removeEventListener("storage", syncCounts);
       window.removeEventListener("cartUpdated", syncCounts);
     };
   }, [syncCounts]);
 
+  // --- AUTH & NAVIGATION PROTECTION ---
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
-      if (!data.session?.user && isProtectedRoute(pathname))
-        router.push("/signin");
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (!session?.user && isProtectedRoute(pathname)) router.push("/signin");
     });
     return () => subscription.unsubscribe();
-  }, [supabase, pathname, router]);
-
-  const isProtectedRoute = (path: string) =>
-    ["/dashboard", "/profile", "/orders", "/wishlist", "/cart"].some((route) =>
-      path.startsWith(route)
-    );
+  }, [supabase]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -90,17 +94,17 @@ export default function Navbar() {
       }`}
     >
       <div className="container mx-auto flex items-center justify-between px-6">
-        {/* Logo */}
+        {/* Brand Logo */}
         <Link href="/" className="group flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:rotate-12 transition-transform">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
             <Zap className="text-white fill-white" size={20} />
           </div>
-          <span className="text-2xl font-black tracking-tighter text-white">
+          <span className="text-2xl font-black tracking-tighter text-white uppercase">
             SHOPEC
           </span>
         </Link>
 
-        {/* Search */}
+        {/* Search Terminal */}
         <div className="hidden md:flex flex-1 max-w-md relative mx-12">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
           <Input
@@ -109,7 +113,7 @@ export default function Navbar() {
           />
         </div>
 
-        {/* Controls */}
+        {/* Global Controls */}
         <div className="flex items-center gap-2">
           {user ? (
             <>
@@ -117,7 +121,7 @@ export default function Navbar() {
                 onClick={() => router.push("/wishlist")}
                 variant="ghost"
                 size="icon"
-                className="relative text-white hover:bg-white/10 rounded-xl"
+                className="relative text-white hover:bg-white/10 rounded-xl transition-all"
               >
                 <Heart
                   size={22}
@@ -136,7 +140,7 @@ export default function Navbar() {
                 onClick={() => router.push("/cart")}
                 variant="ghost"
                 size="icon"
-                className="relative text-white hover:bg-white/10 rounded-xl"
+                className="relative text-white hover:bg-white/10 rounded-xl transition-all"
               >
                 <ShoppingCart size={22} />
                 {cartCount > 0 && (
@@ -148,17 +152,15 @@ export default function Navbar() {
 
               <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block" />
 
-              {/* FIX: Set modal={false} so the dropdown moves with the scrolled page */}
+              {/* User Dropdown */}
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <button className="h-10 w-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 p-[2px] hover:scale-105 transition-transform outline-none">
-                    <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-[#050505] font-black text-white text-xs">
+                    <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-[#0D0D0D] font-black text-white text-xs">
                       {user.email?.charAt(0).toUpperCase()}
                     </div>
                   </button>
                 </DropdownMenuTrigger>
-
-                {/* FIX: Add sideOffset and ensure align is set to 'end' */}
                 <DropdownMenuContent
                   align="end"
                   sideOffset={12}
@@ -174,27 +176,41 @@ export default function Navbar() {
                   </div>
                   <DropdownMenuSeparator className="bg-white/5" />
                   <DropdownMenuItem
-                    onClick={() => router.push("/dashboard")}
-                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer"
+                    onClick={() => {
+                      // Prevent cart/wishlist reset by using direct navigation
+                      window.location.href = "/dashboard";
+                    }}
+                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer transition-colors"
                   >
                     <LayoutDashboard size={18} /> Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => router.push("/orders")}
-                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer"
+                    onClick={() => {
+                      // Prevent cart/wishlist reset by using direct navigation
+                      window.location.href = "/orders";
+                    }}
+                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer transition-colors"
                   >
                     <Package size={18} /> Orders
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => router.push("/profile")}
-                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer"
+                    onClick={() => {
+                      // Prevent cart/wishlist reset by using direct navigation
+                      window.location.href = "/profile";
+                    }}
+                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer transition-colors"
                   >
                     <UserCircle size={18} /> Profile
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-white/5" />
                   <DropdownMenuItem
-                    onClick={() => supabase.auth.signOut()}
-                    className="flex items-center gap-3 rounded-xl py-2 text-rose-400 focus:bg-rose-500/10 cursor-pointer"
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      // Redirect to signin page after logout
+                      // Preserve cart and wishlist data - only clear auth session
+                      window.location.href = "/signin";
+                    }}
+                    className="flex items-center gap-3 rounded-xl py-2 text-rose-400 focus:bg-rose-500/10 cursor-pointer transition-colors"
                   >
                     <LogOut size={18} /> Logout
                   </DropdownMenuItem>
