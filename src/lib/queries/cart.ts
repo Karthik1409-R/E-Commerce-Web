@@ -15,20 +15,22 @@ export function useCart() {
 
       const { data, error } = await supabase
         .from("cart_items")
-        .select("quantity, products(*)")
+        .select("*, quantity, products(*)")
         .eq("user_id", auth.user.id);
 
       if (error) throw error;
 
-      return data.map((row) => ({
-        id: row.products.id,
-        name: row.products.name,
-        price: row.products.price,
-        quantity: row.quantity,
-        image: supabase.storage
-          .from("products")
-          .getPublicUrl(row.products.image_path).data.publicUrl,
-      }));
+      return data
+        .filter((row) => row.products)
+        .map((row: any) => ({
+          id: row.products.id,
+          name: row.products.name,
+          price: row.products.price,
+          quantity: row.quantity,
+          image: supabase.storage
+            .from("products")
+            .getPublicUrl(row.products.image_path).data.publicUrl,
+        }));
     },
   });
 }

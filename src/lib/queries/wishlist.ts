@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
+
 const supabase = createSupabaseBrowserClient();
 
 /* GET WISHLIST */
@@ -15,19 +16,21 @@ export function useWishlist() {
 
       const { data, error } = await supabase
         .from("wishlist")
-        .select("products(*)")
+        .select("*, products(*)")
         .eq("user_id", auth.user.id);
 
       if (error) throw error;
 
-      return data.map((row) => ({
-        id: row.products.id,
-        name: row.products.name,
-        price: row.products.price,
-        image: supabase.storage
-          .from("products")
-          .getPublicUrl(row.products.image_path).data.publicUrl,
-      }));
+      return data
+        .filter((row) => row.products)
+        .map((row: any) => ({
+          id: row.products.id,
+          name: row.products.name,
+          price: row.products.price,
+          image: supabase.storage
+            .from("products")
+            .getPublicUrl(row.products.image_path).data.publicUrl,
+        }));
     },
   });
 }
