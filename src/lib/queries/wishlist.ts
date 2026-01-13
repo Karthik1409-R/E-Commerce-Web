@@ -3,7 +3,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-
 const supabase = createSupabaseBrowserClient();
 
 /* GET WISHLIST */
