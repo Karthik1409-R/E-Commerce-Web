@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import {
+  ShoppingCart,
+  Heart,
+  Zap,
+  LayoutDashboard,
+  Package,
+  UserCircle,
+  LogOut,
+  Search,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,65 +23,37 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Search,
-  ShoppingCart,
-  Zap,
-  LogOut,
-  Package,
-  UserCircle,
-  Heart,
-  LayoutDashboard,
-} from "lucide-react";
+
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useCart } from "@/lib/queries/cart";
+import { useWishlist } from "@/lib/queries/wishlist";
 import type { User } from "@supabase/supabase-js";
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [cartCount, setCartCount] = useState(0);
-  const [wishlistCount, setWishlistCount] = useState(0);
-
   const router = useRouter();
-  const pathname = usePathname();
   const supabase = createSupabaseBrowserClient();
+  const [user, setUser] = useState<User | null>(null);
+  const [scrolled, setScrolled] = useState(false);
 
-  // --- PERSISTENT INVENTORY SYNC ---
-  const syncCounts = useCallback(() => {
-    if (typeof window === "undefined") return;
+  /* ================= DATA HOOKS ================= */
+  // These fetch real-time data from your Supabase tables
+  const { data: cart = [] } = useCart();
+  const { data: wishlist = [] } = useWishlist();
 
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+  // FIX: Calculates count based on database items
+  // cartCount: Total quantity of items in the cart
+  const cartCount = cart.reduce(
+    (acc: number, item: any) => acc + (item.quantity || 0),
+    0
+  );
+  // wishlistCount: Total number of unique favorited items
+  const wishlistCount = wishlist.length;
 
-    // Calculate total item quantity (not just array length)
-    const totalCartItems = cart.reduce(
-      (acc: number, item: any) => acc + (item.quantity || 1),
-      0
-    );
-
-    setCartCount(totalCartItems);
-    setWishlistCount(wishlist.length);
-  }, []);
-
+  /* ================= EFFECTS ================= */
   useEffect(() => {
-    syncCounts(); // Initial load sync
-
-    // Listen for storage changes from the useLocalStorage hook or other tabs
-    window.addEventListener("storage", syncCounts);
-    window.addEventListener("cartUpdated", syncCounts);
-
-    return () => {
-      window.removeEventListener("storage", syncCounts);
-      window.removeEventListener("cartUpdated", syncCounts);
-    };
-  }, [syncCounts]);
-
-  // --- AUTH & NAVIGATION PROTECTION ---
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
-    });
-
+    supabase.auth
+      .getSession()
+      .then(({ data }) => setUser(data.session?.user ?? null));
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -80,9 +63,9 @@ export default function Navbar() {
   }, [supabase]);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
@@ -94,125 +77,115 @@ export default function Navbar() {
       }`}
     >
       <div className="container mx-auto flex items-center justify-between px-6">
-        {/* Brand Logo */}
-        <Link href="/" className="group flex items-center gap-3">
+        {/* LOGO SECTION */}
+        <Link href="/" className="flex items-center gap-3 group">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
-            <Zap className="text-white fill-white" size={20} />
+            <Zap size={20} className="text-white fill-white" />
           </div>
-          <span className="text-2xl font-black tracking-tighter text-white uppercase">
-            SHOPEC
+          <span className="text-2xl font-black text-white tracking-tighter italic uppercase">
+            NEXUS
           </span>
         </Link>
 
-        {/* Search Terminal */}
+        {/* CENTER SEARCHBAR (Visual match to your screenshot) */}
         <div className="hidden md:flex flex-1 max-w-md relative mx-12">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-500" />
           <Input
             placeholder="Search catalog..."
-            className="h-11 rounded-2xl border-none bg-white/5 pl-12 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-purple-500/50"
+            className="h-11 rounded-2xl bg-white/5 pl-12 text-white placeholder:text-white/20 border-white/5 focus:border-cyan-500/50 transition-all outline-none"
           />
         </div>
 
-        {/* Global Controls */}
+        {/* ACTION BUTTONS */}
         <div className="flex items-center gap-2">
           {user ? (
             <>
+              {/* WISHLIST BUTTON */}
               <Button
-                onClick={() => router.push("/wishlist")}
                 variant="ghost"
                 size="icon"
-                className="relative text-white hover:bg-white/10 rounded-xl transition-all"
+                onClick={() => router.push("/wishlist")}
+                className="relative rounded-xl hover:bg-white/5"
               >
                 <Heart
                   size={22}
                   className={
-                    wishlistCount > 0 ? "fill-rose-500 text-rose-500" : ""
+                    wishlistCount > 0
+                      ? "fill-rose-500 text-rose-500"
+                      : "text-white"
                   }
                 />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold ring-2 ring-black">
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-[10px] font-bold flex items-center justify-center text-white ring-2 ring-black animate-in zoom-in">
                     {wishlistCount}
                   </span>
                 )}
               </Button>
 
+              {/* CART BUTTON */}
               <Button
-                onClick={() => router.push("/cart")}
                 variant="ghost"
                 size="icon"
-                className="relative text-white hover:bg-white/10 rounded-xl transition-all"
+                onClick={() => router.push("/cart")}
+                className="relative rounded-xl hover:bg-white/5"
               >
-                <ShoppingCart size={22} />
+                <ShoppingCart size={22} className="text-white" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500 text-[10px] font-bold ring-2 ring-black text-black">
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-cyan-500 text-[10px] font-bold flex items-center justify-center text-black ring-2 ring-black animate-in zoom-in">
                     {cartCount}
                   </span>
                 )}
               </Button>
 
-              <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block" />
-
-              {/* User Dropdown */}
+              {/* USER PROFILE DROPDOWN */}
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <button className="h-10 w-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 p-[2px] hover:scale-105 transition-transform outline-none">
-                    <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-[#0D0D0D] font-black text-white text-xs">
-                      {user.email?.charAt(0).toUpperCase()}
+                  <button className="h-10 w-10 ml-2 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-600 p-[2px] hover:scale-105 transition-transform">
+                    <div className="h-full w-full rounded-[10px] bg-black flex items-center justify-center text-xs font-bold text-white uppercase">
+                      {user.email?.[0]}
                     </div>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  sideOffset={12}
-                  className="w-64 border-white/10 bg-[#0f172a] p-2 text-white backdrop-blur-xl rounded-2xl z-[70] shadow-2xl"
+                  className="w-64 bg-[#0f0f0f] border-white/10 text-white rounded-2xl p-2 shadow-2xl"
                 >
                   <div className="px-3 py-3">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-400 mb-1">
-                      Authenticated
+                    <p className="text-[10px] text-cyan-500 font-black uppercase tracking-widest">
+                      Signed In As
                     </p>
-                    <p className="truncate text-sm font-medium text-white/70">
+                    <p className="truncate text-sm text-white/70 font-medium">
                       {user.email}
                     </p>
                   </div>
                   <DropdownMenuSeparator className="bg-white/5" />
                   <DropdownMenuItem
-                    onClick={() => {
-                      // Prevent cart/wishlist reset by using direct navigation
-                      window.location.href = "/dashboard";
-                    }}
-                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer transition-colors"
+                    className="rounded-lg focus:bg-white/10 cursor-pointer"
+                    onClick={() => router.push("/dashboard")}
                   >
-                    <LayoutDashboard size={18} /> Dashboard
+                    <LayoutDashboard size={18} className="mr-3" /> Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => {
-                      // Prevent cart/wishlist reset by using direct navigation
-                      window.location.href = "/orders";
-                    }}
-                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer transition-colors"
+                    className="rounded-lg focus:bg-white/10 cursor-pointer"
+                    onClick={() => router.push("/orders")}
                   >
-                    <Package size={18} /> Orders
+                    <Package size={18} className="mr-3" /> Orders
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => {
-                      // Prevent cart/wishlist reset by using direct navigation
-                      window.location.href = "/profile";
-                    }}
-                    className="flex items-center gap-3 rounded-xl py-2 focus:bg-white/10 cursor-pointer transition-colors"
+                    className="rounded-lg focus:bg-white/10 cursor-pointer"
+                    onClick={() => router.push("/profile")}
                   >
-                    <UserCircle size={18} /> Profile
+                    <UserCircle size={18} className="mr-3" /> My Profile
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-white/5" />
                   <DropdownMenuItem
+                    className="rounded-lg focus:bg-rose-500/20 text-rose-500 cursor-pointer"
                     onClick={async () => {
                       await supabase.auth.signOut();
-                      // Redirect to signin page after logout
-                      // Preserve cart and wishlist data - only clear auth session
-                      window.location.href = "/signin";
+                      router.push("/signin");
                     }}
-                    className="flex items-center gap-3 rounded-xl py-2 text-rose-400 focus:bg-rose-500/10 cursor-pointer transition-colors"
                   >
-                    <LogOut size={18} /> Logout
+                    <LogOut size={18} className="mr-3" /> Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -220,7 +193,7 @@ export default function Navbar() {
           ) : (
             <Button
               asChild
-              className="rounded-xl bg-white text-black hover:bg-purple-500 hover:text-white font-black transition-all"
+              className="rounded-xl font-black bg-white text-black hover:bg-cyan-500 transition-colors"
             >
               <Link href="/signin">SIGN IN</Link>
             </Button>

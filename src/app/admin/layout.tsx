@@ -1,5 +1,11 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { AdminSidebar } from "../components/admin/AdminSidebar";
 
 export default async function AdminLayout({
   children,
@@ -7,44 +13,44 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createSupabaseServerClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  console.log("AdminLayout - User:", {
-    id: user?.id,
-    email: user?.email,
-    exists: !!user,
-  });
+  if (!user) redirect("/signin");
 
-  // Not logged in -> redirect to signin
-  if (!user) {
-    console.log("AdminLayout - No user, redirecting to signin");
-    redirect("/signin");
-  }
-
-  // Check if user has admin role
-  const { data: profile, error } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  console.log("AdminLayout - Profile check:", {
-    userId: user.id,
-    profile: profile,
-    error: error?.message,
-    role: profile?.role,
-  });
+  if (!profile || profile.role !== "admin") redirect("/dashboard");
 
-  // If no profile or not admin -> redirect to dashboard
-  if (error || !profile || profile.role !== "admin") {
-    console.log("AdminLayout - Not admin, redirecting to dashboard");
-    redirect("/dashboard");
-  }
+  return (
+    <SidebarProvider className="h-screen overflow-hidden">
+      <div className="flex h-full w-full bg-[#000000]">
+        <AdminSidebar />
 
-  console.log("AdminLayout - Access granted for admin");
-  return <>{children}</>;
+        {/* SidebarInset creates the fixed central area */}
+        <SidebarInset className="flex flex-col h-full overflow-hidden border-none bg-[#000000]">
+          {/* Mobile Header: Visible only on phones */}
+          <header className="flex h-14 shrink-0 items-center gap-2 border-b border-white/5 px-4 md:hidden">
+            <SidebarTrigger className="-ml-1 text-white/40 hover:text-white" />
+            <div className="h-4 w-px bg-white/10 mx-2" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
+              Nexus Console
+            </span>
+          </header>
+
+          {/* Scrollable Main Content */}
+          <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+            <div className="max-w-[1600px] mx-auto w-full">
+              {children}
+            </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
+  );
 }
-

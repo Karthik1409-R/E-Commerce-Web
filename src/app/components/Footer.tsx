@@ -35,7 +35,7 @@ export default function Footer() {
                 </div>
               </div>
               <span className="text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 uppercase">
-                SHOPEC
+                NEXUS
               </span>
             </Link>
             <p className="text-gray-400/70 font-medium leading-relaxed max-w-xs">

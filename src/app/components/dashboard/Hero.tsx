@@ -171,36 +171,6 @@ export default function HeroSection() {
           <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[110%] w-[110%] rounded-[4rem] border border-cyan-500/10 -rotate-3" />
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(2deg);
-          }
-          50% {
-            transform: translateY(-20px) rotate(1deg);
-          }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-            filter: blur(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-            filter: blur(0);
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 1s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-      `}</style>
     </section>
   );
 }
